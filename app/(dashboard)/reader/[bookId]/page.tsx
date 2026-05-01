@@ -4,12 +4,22 @@ import { useRouter } from 'next/navigation';
 import { useBookStore } from '@/store/useBookStore';
 import Button from '@/components/ui/Button';
 import { ReactReader } from 'react-reader';
+import dynamic from 'next/dynamic';
+import AIFloatingButton from '@/components/reader/AIFloatingButton';
+
+const PdfReaderEngine = dynamic(
+  () => import('@/components/reader/PdfReaderEngine'),
+  { ssr: false }
+);
+import AISidebar from '@/components/reader/AISidebar';
 
 export default function ReaderPage({ params }: { params: { bookId: string } }) {
   const router = useRouter();
   const { userBooks, fetchBooks } = useBookStore();
   
   const [location, setLocation] = useState<string | number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const userBook = userBooks.find((ub) => ub.id === params.bookId);
   const isPdf = userBook?.book?.file_url?.toLowerCase().includes('.pdf');
@@ -36,12 +46,11 @@ export default function ReaderPage({ params }: { params: { bookId: string } }) {
          </div>
       </div>
       
-      <div className="reader-body">
+      <div className="reader-body" style={{ position: 'relative' }}>
          {isPdf ? (
-             <iframe 
-                 src={userBook.book.file_url} 
-                 className="pdf-viewer" 
-                 title="PDF Viewer"
+             <PdfReaderEngine 
+                 fileUrl={userBook.book.file_url} 
+                 onPageChange={(page) => setCurrentPage(page)}
              />
          ) : (
              <div className="epub-professional-wrapper">
@@ -63,6 +72,15 @@ export default function ReaderPage({ params }: { params: { bookId: string } }) {
              </div>
          )}
       </div>
+
+      <AIFloatingButton onClick={() => setIsSidebarOpen(prev => !prev)} isOpen={isSidebarOpen} />
+      
+      <AISidebar 
+         isOpen={isSidebarOpen} 
+         onClose={() => setIsSidebarOpen(false)} 
+         fileUrl={userBook.book.file_url}
+         currentPage={currentPage}
+      />
 
       <style jsx>{`
         .reader-container {

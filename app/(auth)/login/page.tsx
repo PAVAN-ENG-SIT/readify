@@ -4,13 +4,13 @@
 // Readify — Login Page
 // ═══════════════════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from '@/lib/supabase/auth';
 import Button from '@/components/ui/Button';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/books';
@@ -148,5 +148,13 @@ export default function LoginPage() {
         }
       `}</style>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading application...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

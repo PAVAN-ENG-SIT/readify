@@ -2,7 +2,7 @@
 // READIFY — AI Summary Engine (Layer 8)
 // ═══════════════════════════════════════════════════════════
 
-import { genAI, MODEL_NAME } from './gemini';
+import { generateWithRetry } from './gemini';
 import { createAdminClient } from '@/lib/supabase/server';
 import { eventBus } from '@/lib/events/eventBus';
 
@@ -29,7 +29,6 @@ export const aiSummarizer = {
             .limit(5);
 
         // 3. Construct prompt
-        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
         const recentContext = recentSessions?.map(s => `Read ${s.pages_read} pages. Notes: ${s.notes || 'None'}`).join('\n') || '';
         
         const prompt = `
@@ -46,8 +45,7 @@ Write it in a premium, engaging tone. Do not use generic praise.
         `;
 
         try {
-            const result = await model.generateContent(prompt);
-            const summaryText = result.response.text();
+            const summaryText = await generateWithRetry(prompt);
             
             // 4. Save to DB
             const { data: generatedSummary } = await supabase.from('ai_summaries').insert({
@@ -77,7 +75,7 @@ Write it in a premium, engaging tone. Do not use generic praise.
 eventBus.on('SESSION_END', async (payload) => {
     try {
         console.log('[AIEngine] Starting background summary for session:', payload.sessionId);
-        await aiSummarizer.generateSummary(payload.sessionId, payload.userId, payload.bookId, payload.notes);
+        await aiSummarizer.generateSummary(payload.sessionId, payload.userId, payload.bookId, payload.notes || undefined);
     } catch (e) {
         console.error('[AIEngine] Processing Failed:', e);
     }

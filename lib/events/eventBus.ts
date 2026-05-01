@@ -13,7 +13,9 @@ export type EventType =
   | 'STREAK_UPDATED'
   | 'CONTRACT_EVALUATED'
   | 'SUMMARY_GENERATED'
-  | 'SUMMARY_FAILED';
+  | 'SUMMARY_FAILED'
+  | 'STREAK_EVALUATED'
+  | 'AI_SUMMARY_GENERATED';
 
 // ── Event Payloads ──
 export interface SessionStartPayload {
@@ -74,6 +76,17 @@ export interface SummaryPayload {
   error?: string;
 }
 
+export interface AISummaryPayload {
+  sessionId: string;
+  summaryId?: string;
+}
+
+export interface StreakEvaluatedPayload {
+  userId: string;
+  currentStreak: number;
+  gainedStreak: boolean;
+}
+
 // ── Payload Map ──
 export interface EventPayloadMap {
   SESSION_START: SessionStartPayload;
@@ -85,6 +98,8 @@ export interface EventPayloadMap {
   CONTRACT_EVALUATED: ContractEvaluatedPayload;
   SUMMARY_GENERATED: SummaryPayload;
   SUMMARY_FAILED: SummaryPayload;
+  AI_SUMMARY_GENERATED: AISummaryPayload;
+  STREAK_EVALUATED: StreakEvaluatedPayload;
 }
 
 // ── Event Handler Type ──
